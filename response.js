@@ -44,7 +44,8 @@ function post_response(questionnaire) {
         items.text = this_question.text;
         let valueType;
         /* this rule work well in all cases */
-        if (this_answer.children[1].value == "") {
+        // this_question.required == true is a safer approach since this_question.required can be undefined in certain cases
+        if (this_answer.children[1].value == "" && this_question.required == true) {
             output("Exception : incomplete input");
             return undefined;
         }
@@ -68,7 +69,7 @@ function post_response(questionnaire) {
                             }
                         };
                         alert("prsent");
-                    } else {
+                    } else if (this_question.required == true) {
                         output("Incompatible Format : Reference Type");
                         return undefined;
                     }
@@ -88,7 +89,7 @@ function post_response(questionnaire) {
                     isCorrect = checkDate(this_answer.children[1].value);
                     if (isCorrect)
                         valueType = { "valueDate": this_answer.children[1].value.trim() };
-                    else {
+                    else if (this_question.required == true) {
                         output("Incompatible Format : Date Type");
                         return undefined;
                     }
@@ -97,7 +98,7 @@ function post_response(questionnaire) {
                     isCorrect = checkTime(this_answer.children[1].value);
                     if (isCorrect)
                         valueType = { "valueTime": this_answer.children[1].value.trim() };
-                    else {
+                    else if (this_question.required == true) {
                         output("Incompatible Format : Time Type");
                         return undefined;
                     }
@@ -111,7 +112,7 @@ function post_response(questionnaire) {
                     isCorrect = checkDate(dateTime_segment[0]) & checkTime(dateTime_segment[1]);
                     if (isCorrect) {
                         valueType = { "valueDateTime": this_answer.children[1].value.trim() };
-                    } else {
+                    } else if (this_question.required == true) {
                         output("Incompatible Format : Time Type");
                         return undefined;
                     }
@@ -120,17 +121,27 @@ function post_response(questionnaire) {
         } else if (expected_type == "boolean") {
             bool_list = document.getElementsByName(this_question.linkId);
             if (bool_list[0].checked)
-                valueType = { "valueBoolean": "true" };
-            else
+                valueType = { "valueBoolean": true };
+            else if (bool_list[1].checked)
                 valueType = { "valueBoolean": "false" }
+            else if (this_question.required == true) {
+                output("Incomplete Input : Radio Type");
+                return undefined;
+            }
         }
         if (expected_type == "group") { // checkbox
             let boxs = document.getElementsByName(this_question.linkId);
+            let pushed = false;
             boxs.forEach(function(box) {
                 if (box.checked) {
                     items.answer.push({ "valueString": box.value });
+                    pushed = true;
                 }
             });
+            if (this_question.required == true && !pushed) {
+                output("Incomplete Input : Checkbox Type");
+                return undefined;
+            }
         } else {
             console.table(valueType);
             items.answer.push(valueType);

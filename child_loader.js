@@ -12,6 +12,7 @@ function append_input(item, parentNode) {
     } else if (number_set.includes(item.type)) {
         input_box.type = "number";
         input_box.setAttribute("min", 0);
+        input_box.value = 0;
         parentNode.appendChild(input_box);
     } else if (checkbox_set.includes(item.type)) {
         for (let i = 0; i < item.answerOption.length; i++) {
