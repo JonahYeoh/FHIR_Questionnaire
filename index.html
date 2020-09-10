@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Survey</title>
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <!-- JavaScript -->
+    <script src="http_request.js"></script>
+    <script src="response.js"></script>
+    <script src="child_loader.js"></script>
+    <script>
+        // global variable
+        var questionnaire;
+        const input_set = ['group', 'boolean', 'decimal', 'integer', 'date', 'dateTime', 'time', 'string', 'url', 'reference', 'quantity'];
+        const select_set = ['choice', 'open-choice'];
+        /* Out of scope 
+        const pending_set = ['attachment']; // 也許可以用type=file
+        */
+        /* 先用get_question從伺服器取得問卷（編號41981），然後用load_question呈現問卷內容 */
+        function get_question() {
+            const url = "https://fhir.dicom.tw/fhir/Questionnaire/42019";
+            /* HTTPGetData 在response.js */
+            HTTPGetData(url, load_question);
+
+        }
+
+        function load_question(responseText) {
+            // 不成功的情況
+            if (responseText == "" || responseText == undefined) {
+                alert("error");
+                return undefined;
+            }
+            // 成功的情況
+            questionnaire = JSON.parse(responseText);
+            var list = document.getElementById("question_list");
+            /* 標題 */
+            var title = document.getElementById("title");
+            title.innerHTML = questionnaire.title;
+            /* 注意：questionnaire.item 是陣列 */
+            for (let i = 0; i < questionnaire.item.length; i++) { // 根據問卷的題目個數動態呈現問題和選項
+                let li = document.createElement("li");
+                let this_question = questionnaire.item[i];　 // 取得陣列元素
+                /* 問題項 */
+                let question_text = document.createElement("p");
+                question_text.innerHTML = this_question.text;
+                li.appendChild(question_text);
+                /* 輸入項 */
+                console.log(input_set);
+                console.log(input_set.includes(this_question.type));
+                if (input_set.includes(this_question.type)) {
+                    append_input(this_question, li);
+                } else if (select_set.includes(this_question.type)) {
+                    append_select(this_question, li);
+                }
+                list.appendChild(li);
+            }
+        }
+
+        /* 網頁呼叫send_out先檢查是否已經載入標單，若已經載如呼叫post_response上傳回饋 */
+        function send_out() {
+            if (questionnaire == undefined) {
+                console("ERROR : questionnaire is undefined");
+                alert("Please reload this page");
+                return undefined;
+            }
+            /* post_response在response.js */
+            post_response(questionnaire);
+        }
+
+        /* 呼叫output呈現上傳回饋後伺服器回傳的結果　*/
+        function output(response) {
+            var panel = document.getElementById("panel");
+            panel.style.display = "block";
+            // 不成功的情況
+            if (response == "") {
+                document.getElementById("display_area").value = "資料上傳不成功";
+            } else // 成功的情況
+                document.getElementById("display_area").value = response;
+        }
+    </script>
+</head>
+
+<body onload="get_question();">
+    <form id="form_1">
+        <!-- 標題 -->
+        <h3 id="title"></h3>
+        <!-- 問卷的問題將載到這裡 -->
+        <ol id="question_list">
+            <!-- <option value="x">X</option> -->
+        </ol>
+        <!-- subject id -->
+        <span>ID : </span><input type="text" id="subject_id" size="64" />
+        <!-- 點按鈕提交 -->
+        <input type="button" onclick="send_out()" value="提交" />
+        <hr/>
+    </form>
+    <!-- panel平時都是關閉狀態，直會在提交後打開 -->
+    <div id="panel" style="display: none; border: 1px solid black;">
+        <h2>結果</h2>
+        <!-- 結果區 -->
+        <textarea id="display_area"></textarea>
+        <!-- 點按鈕關閉panel -->
+        <input type="button" onclick="document.getElementById('panel').style.display='none';" value="關閉" />
+    </div>
+</body>
+
+</html>

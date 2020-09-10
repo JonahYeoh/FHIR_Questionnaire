@@ -1,0 +1,28 @@
+body {
+    font-size: 20px;
+    padding: 20px;
+    width: 1500px;
+    height: 700px;
+}
+
+input[type="button"],
+input[type="text"],
+input[type="number"],
+select {
+    font-size: 20px;
+}
+
+input[type="radio"] {
+    size: 20px;
+}
+
+#panel {
+    width: 1000px;
+    padding: 20px;
+    background-color: whitesmoke;
+}
+
+#display_area {
+    width: 800px;
+    height: 400px;
+}
