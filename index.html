@@ -48,8 +48,7 @@
                 question_text.innerHTML = this_question.text;
                 li.appendChild(question_text);
                 /* 輸入項 */
-                console.log(input_set);
-                console.log(input_set.includes(this_question.type));
+                // console.log(input_set); // debugger
                 if (input_set.includes(this_question.type)) {
                     append_input(this_question, li);
                 } else if (select_set.includes(this_question.type)) {
